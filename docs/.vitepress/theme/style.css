@@ -46,8 +46,57 @@
 .VPSidebarItem .text { line-height: 1.5; }
 .VPSidebarItem.is-active > .item .link > .text { font-weight: 650; }
 
+/* Homepage: let the knowledge map dominate the workspace while the sidebar stays visible. */
+.home-map-page .VPDoc .container,
+.home-map-page .VPDoc .content,
+.home-map-page .VPDoc .content-container {
+  max-width: none !important;
+}
+
+.home-map-page .VPDoc .content {
+  padding-right: 32px;
+}
+
+.home-map-page .vp-doc > h1 {
+  margin-bottom: 10px;
+  font-size: 34px;
+}
+
+.home-map-page .vp-doc > h1 + p {
+  max-width: 880px;
+  margin-bottom: 20px;
+  color: var(--vp-c-text-2);
+}
+
+.home-map-page .knowledge-map {
+  margin-top: 18px;
+}
+
+.home-map-page .knowledge-map .map-viewport {
+  height: calc(100vh - 230px);
+  min-height: 620px;
+  max-height: 860px;
+  border-radius: 12px;
+}
+
+.home-map-page .knowledge-map .map-toolbar {
+  margin-bottom: 12px;
+}
+
+@media (max-width: 960px) {
+  .home-map-page .VPDoc .content {
+    padding-right: 24px;
+  }
+
+  .home-map-page .knowledge-map .map-viewport {
+    min-height: 560px;
+  }
+}
+
 @media (max-width: 640px) {
   .vp-doc { font-size: 14px; }
   .vp-doc h1 { font-size: 25px; }
   .vp-doc table { display: block; overflow-x: auto; }
+  .home-map-page .VPDoc .content { padding-right: 24px; }
+  .home-map-page .vp-doc > h1 { font-size: 28px; }
 }
