@@ -1,0 +1,38 @@
+{
+  "id": "root",
+  "title": "Attention 知识网",
+  "children": [
+    {
+      "id": "theory",
+      "title": "理论",
+      "children": [
+        {
+          "id": "theory-topic",
+          "title": "待整理的主题",
+          "children": [
+            {
+              "id": "theory-detail",
+              "title": "待补充的知识点"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "practice",
+      "title": "实操",
+      "children": [
+        {
+          "id": "practice-topic",
+          "title": "待整理的主题",
+          "children": [
+            {
+              "id": "practice-detail",
+              "title": "待补充的实验记录"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
