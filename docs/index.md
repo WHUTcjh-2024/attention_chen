@@ -11,6 +11,6 @@ import KnowledgeMap from './.vitepress/components/KnowledgeMap.vue'
 
 # Attention Knowledge Map
 
-从 Attention 基础一路展开到推理、KV Cache、Kernel、Serving 与分布式系统。首页直接作为知识导航入口；左侧侧栏负责文档目录，点击地图节点可展开主题或进入对应文档。
+从 Attention 基础一路展开到推理、KV Cache、Kernel、Serving 与系统实现。首页直接作为知识地图，点击节点即可展开或收起主题。
 
 <KnowledgeMap />
