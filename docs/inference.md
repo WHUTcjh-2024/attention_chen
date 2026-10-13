@@ -22,4 +22,4 @@ Greedy、sampling、beam search、speculative decoding 等策略发生在 logits
 
 `current hidden state → Q/K/V projection → append K/V to cache → load historical K/V → attention kernel → output projection`
 
-下一步可以结合 [KV Cache](/kv-cache/) 和 [Kernels](/kernels/) 分别看“数据放在哪里”和“GPU 上怎么计算”。
+下一步可以结合 [KV Cache](/kv-cache) 和 [Kernels](/kernels) 分别看“数据放在哪里”和“GPU 上怎么计算”。
