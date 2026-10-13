@@ -7,17 +7,27 @@ const dist = join(root, 'docs', '.vitepress', 'dist')
 const base = '/attention_chen/'
 const failures = new Set()
 
-function outputFile(pathname) {
-  if (!pathname.startsWith(base)) return
+function outputCandidates(pathname) {
+  if (!pathname.startsWith(base)) return []
   const relativePath = decodeURIComponent(pathname.slice(base.length))
-  return join(dist, relativePath.endsWith('/') || !relativePath ? relativePath + 'index.html' : relativePath)
+
+  if (!relativePath) return [join(dist, 'index.html')]
+  if (relativePath.endsWith('/')) return [join(dist, relativePath, 'index.html')]
+
+  return [
+    join(dist, relativePath),
+    join(dist, `${relativePath}.html`),
+    join(dist, relativePath, 'index.html')
+  ]
 }
 
 function verifyLink(link, source) {
   if (!link.startsWith(base)) return
   const pathname = new URL(link, 'https://example.test').pathname
-  const file = outputFile(pathname)
-  if (file && !existsSync(file)) failures.add(`${source}: ${link}`)
+  const candidates = outputCandidates(pathname)
+  if (candidates.length && !candidates.some((file) => existsSync(file))) {
+    failures.add(`${source}: ${link}`)
+  }
 }
 
 function visit(directory) {
