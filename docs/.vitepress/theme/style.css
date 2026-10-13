@@ -10,32 +10,21 @@
   --vp-c-text-1: #27272a;
   --vp-c-text-2: #66666e;
   --vp-c-text-3: #71717a;
-  --vp-sidebar-width: 250px;
-  --vp-content-width: 780px;
+  --vp-sidebar-width: 238px;
+  --vp-content-width: 820px;
   --vp-code-block-bg: #f7f7f8;
 }
 
-.VPNavBar, .VPSidebar {
-  box-shadow: none;
-}
+.VPNavBar, .VPSidebar { box-shadow: none; }
+.VPNavBar { border-bottom: 1px solid #f1f1f1; }
+.VPSidebar { border-right: 1px solid #f1f1f1; background: #fff !important; }
+.VPSidebarItem.level-0 > .item > .text { color: #18181b; font-weight: 650; }
+.VPSidebarItem .text { line-height: 1.5; }
+.VPSidebarItem.is-active > .item .link > .text { font-weight: 650; }
 
-.vp-doc {
-  font-size: 15px;
-  line-height: 1.8;
-}
-
-.vp-doc h1 {
-  font-size: 30px;
-  letter-spacing: -0.025em;
-}
-
-.vp-doc h2 {
-  margin-top: 38px;
-  padding-top: 22px;
-  border-top-color: #f1f1f1;
-  font-size: 21px;
-}
-
+.vp-doc { font-size: 15px; line-height: 1.8; }
+.vp-doc h1 { font-size: 30px; letter-spacing: -0.025em; }
+.vp-doc h2 { margin-top: 38px; padding-top: 22px; border-top-color: #f1f1f1; font-size: 21px; }
 .vp-doc h3 { font-size: 17px; }
 .vp-doc p, .vp-doc li { line-height: 1.85; }
 .vp-doc blockquote { border-left-color: #d4d4d8; color: #66666e; }
@@ -43,54 +32,33 @@
 .vp-doc :not(pre) > code { border-radius: 4px; }
 .vp-doc table { display: table; width: 100%; }
 .vp-doc th, .vp-doc td { padding: 8px 12px; }
-.VPSidebarItem .text { line-height: 1.5; }
-.VPSidebarItem.is-active > .item .link > .text { font-weight: 650; }
 
-/* Homepage: let the knowledge map dominate the workspace while the sidebar stays visible. */
 .home-map-page .VPDoc .container,
 .home-map-page .VPDoc .content,
 .home-map-page .VPDoc .content-container {
   max-width: none !important;
 }
 
-.home-map-page .VPDoc .content {
-  padding-right: 32px;
+.home-map-page .VPDoc .content { padding-right: 30px; }
+.home-map-page .VPDoc .content-container { margin: 0; }
+.home-map-page .home-kicker {
+  margin-bottom: 8px;
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
 }
+.home-map-page .vp-doc > h1 { margin: 0 0 9px; font-size: 32px; }
+.home-map-page .vp-doc > h1 + p { max-width: 900px; margin: 0 0 18px; color: var(--vp-c-text-2); }
+.home-map-page .knowledge-map { margin-top: 12px; }
 
-.home-map-page .vp-doc > h1 {
-  margin-bottom: 10px;
-  font-size: 34px;
-}
-
-.home-map-page .vp-doc > h1 + p {
-  max-width: 880px;
-  margin-bottom: 20px;
-  color: var(--vp-c-text-2);
-}
-
-.home-map-page .knowledge-map {
-  margin-top: 18px;
-}
-
-.home-map-page .knowledge-map .map-viewport {
-  height: calc(100vh - 230px);
-  min-height: 620px;
-  max-height: 860px;
-  border-radius: 12px;
-}
-
-.home-map-page .knowledge-map .map-toolbar {
-  margin-bottom: 12px;
+@media (min-width: 1440px) {
+  .home-map-page .VPDoc .content { padding-left: 34px; padding-right: 38px; }
+  .home-map-page .knowledge-map .map-viewport { height: calc(100vh - 235px); min-height: 760px; max-height: 930px; }
 }
 
 @media (max-width: 960px) {
-  .home-map-page .VPDoc .content {
-    padding-right: 24px;
-  }
-
-  .home-map-page .knowledge-map .map-viewport {
-    min-height: 560px;
-  }
+  .home-map-page .VPDoc .content { padding-right: 24px; }
 }
 
 @media (max-width: 640px) {

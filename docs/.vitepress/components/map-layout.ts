@@ -1,16 +1,17 @@
-import type { KnowledgeNode } from '../data/knowledge-map'
+import type { KnowledgeNode, KnowledgeTone } from '../data/knowledge-map'
 
-export const NODE_WIDTH = 176
-export const NODE_HEIGHT = 50
-const COLUMN_GAP = 228
-const ROW_GAP = 78
-const MARGIN = 32
+export const NODE_WIDTH = 198
+export const NODE_HEIGHT = 40
+const COLUMN_GAP = 246
+const ROW_GAP = 54
+const MARGIN = 34
 
 export interface PlacedNode {
   node: KnowledgeNode
   depth: number
   x: number
   y: number
+  tone?: KnowledgeTone
 }
 
 export interface MapLayout {
@@ -25,8 +26,9 @@ export function layoutMap(root: KnowledgeNode, expanded: ReadonlySet<string>): M
   const edges: [PlacedNode, PlacedNode][] = []
   let row = 0
 
-  function visit(node: KnowledgeNode, depth: number, parent?: PlacedNode): PlacedNode {
-    const placed: PlacedNode = { node, depth, x: MARGIN + depth * COLUMN_GAP, y: 0 }
+  function visit(node: KnowledgeNode, depth: number, parent?: PlacedNode, inheritedTone?: KnowledgeTone): PlacedNode {
+    const tone = node.tone ?? inheritedTone
+    const placed: PlacedNode = { node, depth, x: MARGIN + depth * COLUMN_GAP, y: 0, tone }
     nodes.push(placed)
     if (parent) edges.push([parent, placed])
 
@@ -34,7 +36,7 @@ export function layoutMap(root: KnowledgeNode, expanded: ReadonlySet<string>): M
     if (children.length === 0) {
       placed.y = MARGIN + row++ * ROW_GAP
     } else {
-      const visibleChildren = children.map((child) => visit(child, depth + 1, placed))
+      const visibleChildren = children.map((child) => visit(child, depth + 1, placed, tone))
       placed.y = (visibleChildren[0].y + visibleChildren.at(-1)!.y) / 2
     }
     return placed
@@ -46,7 +48,7 @@ export function layoutMap(root: KnowledgeNode, expanded: ReadonlySet<string>): M
     nodes,
     edges,
     width: MARGIN * 2 + depth * COLUMN_GAP + NODE_WIDTH,
-    height: Math.max(240, MARGIN * 2 + (row - 1) * ROW_GAP + NODE_HEIGHT)
+    height: Math.max(320, MARGIN * 2 + (row - 1) * ROW_GAP + NODE_HEIGHT)
   }
 }
 
