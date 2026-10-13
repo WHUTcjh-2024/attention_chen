@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import { sidebar } from './sidebar'
 
 export default defineConfig({
   lang: 'zh-CN',
@@ -8,6 +9,7 @@ export default defineConfig({
   appearance: false,
   cleanUrls: true,
   themeConfig: {
+    sidebar,
     search: { provider: 'local' },
     socialLinks: [
       { icon: 'github', link: 'https://github.com/WHUTcjh-2024/attention_chen' }

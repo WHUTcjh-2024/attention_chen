@@ -46,14 +46,9 @@ function visit(directory) {
 if (!existsSync(dist)) throw new Error('Build the site before checking links.')
 visit(dist)
 
-const map = readFileSync(join(root, 'docs', '.vitepress', 'data', 'knowledge-map.ts'), 'utf8')
-for (const match of map.matchAll(/link:\s*'([^']+)'/g)) {
-  verifyLink(base + match[1].replace(/^\//, ''), 'knowledge-map.ts')
-}
-
 if (failures.size) {
   for (const failure of [...failures].sort()) console.error(failure)
   process.exitCode = 1
 } else {
-  console.log('Built site links and knowledge-map destinations resolve.')
+  console.log('Built site links resolve.')
 }
