@@ -11,8 +11,7 @@ export default defineConfig({
   themeConfig: {
     siteTitle: 'Attention KB',
     nav: [
-      { text: '知识地图', link: '/' },
-      { text: '文档', link: '/foundations' }
+      { text: '知识地图', link: '/' }
     ],
     sidebar: [
       {
@@ -20,18 +19,17 @@ export default defineConfig({
         items: [{ text: '知识地图', link: '/' }]
       },
       {
-        text: '文档',
+        text: '知识结构',
         items: [
-          { text: 'Foundations · 基础概念', link: '/foundations' },
-          { text: 'Inference · 推理流程', link: '/inference' },
-          { text: 'KV Cache · 缓存机制', link: '/kv-cache' },
-          { text: 'Kernels · 算子优化', link: '/kernels' },
-          { text: 'Serving · 推理服务', link: '/serving' },
-          { text: 'Systems · 系统实现', link: '/systems' }
+          { text: 'Foundations · 基础概念' },
+          { text: 'Inference · 推理流程' },
+          { text: 'KV Cache · 缓存机制' },
+          { text: 'Kernels · 算子优化' },
+          { text: 'Serving · 推理服务' },
+          { text: 'Systems · 系统实现' }
         ]
       }
     ],
-    outline: { level: [2, 3], label: '本页' },
     search: { provider: 'local' },
     socialLinks: [
       { icon: 'github', link: 'https://github.com/WHUTcjh-2024/attention_chen' }

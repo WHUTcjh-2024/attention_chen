@@ -13,6 +13,6 @@ import KnowledgeMap from './.vitepress/components/KnowledgeMap.vue'
 
 # Attention Knowledge Map
 
-从 **机制 → 推理 → KV Cache → Kernel → Serving → Systems** 建立完整的工程视角。左侧是稳定的文档导航，下面的知识地图负责展示全局关系；点击节点标题即可进入对应文档，点击 `+ / −` 展开或收起分支。
+从 **机制 → 推理 → KV Cache → Kernel → Serving → Systems** 建立完整的工程视角。左侧保留知识结构导航，主页以总思维导图为核心；后续真正写入文档时，再把对应节点挂上超链接。
 
 <KnowledgeMap />
