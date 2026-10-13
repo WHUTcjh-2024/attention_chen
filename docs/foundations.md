@@ -18,7 +18,7 @@ $$
 - **K (Key)**：历史 token 用什么特征参与匹配。
 - **V (Value)**：匹配之后真正被聚合的信息。
 
-在 autoregressive decode 中，新 token 只产生一组新的 Q/K/V；历史 K/V 通常直接从 [KV Cache](/kv-cache/) 读取。
+在 autoregressive decode 中，新 token 只产生一组新的 Q/K/V；历史 K/V 通常直接从 [KV Cache](/kv-cache) 读取。
 
 ## MHA / MQA / GQA
 
