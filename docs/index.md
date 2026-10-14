@@ -1,9 +1,13 @@
 ---
-title: Attention Knowledge Base
-description: Attention 与大模型推理优化知识库
+title: Attention 知识网
+description: 从模型结构到推理阶段，系统理解 Attention
+sidebar: false
 aside: false
+pageClass: knowledge-home
 ---
 
-# Attention Knowledge Base
+<script setup lang="ts">
+import KnowledgeNetwork from './.vitepress/components/KnowledgeNetwork.vue'
+</script>
 
-文档正在整理中，后续将在此上传 Attention、大模型推理优化相关内容。
+<KnowledgeNetwork />
