@@ -89,8 +89,42 @@ function collectExpandable(node) {
 
 collectExpandable(tree)
 
-const expanded = new Set(['attention', 'architecture', 'runtime'])
+const expanded = new Set(['attention'])
 const map = document.querySelector('#mind-map')
+const scroller = document.querySelector('#map-scroll')
+const svgNamespace = 'http://www.w3.org/2000/svg'
+
+function drawConnectors() {
+  const svg = map.querySelector('.map-connectors')
+  if (!svg || window.matchMedia('(max-width: 700px)').matches) return
+
+  const mapRect = map.getBoundingClientRect()
+  svg.setAttribute('viewBox', `0 0 ${mapRect.width} ${mapRect.height}`)
+  svg.replaceChildren()
+
+  for (const item of map.querySelectorAll('.tree-item')) {
+    const children = [...item.children].find((child) => child.classList.contains('tree-level'))
+    if (!children) continue
+
+    const parent = item.firstElementChild.getBoundingClientRect()
+    const targets = [...children.children].map((child) => child.firstElementChild.getBoundingClientRect())
+    const centerX = (rect) => rect.left + rect.width / 2 - mapRect.left
+    const startY = parent.bottom - mapRect.top
+    const endY = targets[0].top - mapRect.top
+    const junctionY = startY + (endY - startY) / 2
+    const positions = targets.map(centerX)
+
+    const segments = [`M ${centerX(parent)} ${startY} V ${junctionY}`]
+    if (targets.length > 1) {
+      segments.push(`M ${positions[0]} ${junctionY} H ${positions.at(-1)}`)
+    }
+    for (const x of positions) segments.push(`M ${x} ${junctionY} V ${endY}`)
+
+    const path = document.createElementNS(svgNamespace, 'path')
+    path.setAttribute('d', segments.join(' '))
+    svg.append(path)
+  }
+}
 
 function renderNode(node, depth) {
   const item = document.createElement('li')
@@ -147,11 +181,21 @@ function render(focusId) {
   const list = document.createElement('ul')
   list.className = 'tree-level tree-root'
   list.append(renderNode(tree, 0))
-  map.replaceChildren(list)
+  const svg = document.createElementNS(svgNamespace, 'svg')
+  svg.classList.add('map-connectors')
+  svg.setAttribute('aria-hidden', 'true')
+  map.replaceChildren(svg, list)
 
   if (focusId) {
     map.querySelector(`[data-node-id="${focusId}"]`)?.focus({ preventScroll: true })
   }
+
+  requestAnimationFrame(() => {
+    drawConnectors()
+    if (window.matchMedia('(min-width: 701px)').matches) {
+      scroller.scrollLeft = (scroller.scrollWidth - scroller.clientWidth) / 2
+    }
+  })
 }
 
 map.addEventListener('click', (event) => {
@@ -176,3 +220,5 @@ document.querySelector('#collapse-all').addEventListener('click', () => {
 })
 
 render()
+window.addEventListener('resize', drawConnectors)
+document.fonts.ready.then(drawConnectors)
