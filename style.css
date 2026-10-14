@@ -79,13 +79,14 @@ a { color: inherit; }
 .map-actions button { border: 1px solid transparent; border-radius: 5px; padding: 6px 9px; background: transparent; color: #647899; font-size: 11px; }
 .map-actions button:hover { border-color: #dae5f5; background: #f2f6fd; color: #2857bc; }
 .map-area { padding: 0 20px 22px; }
-.map-scroll { min-height: calc(100dvh - 150px); overflow: auto; }
-.mind-map { position: relative; width: min(100%, 1060px); min-width: 900px; margin: 0 auto; padding: 52px 14px 44px; }
+.map-scroll { overflow: auto; }
+.mind-map { position: relative; width: min(100%, 1060px); min-width: 740px; margin: 0 auto; padding: 52px 14px 44px; }
 .map-connectors { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; fill: none; stroke: #91a9d1; stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
 .tree-level { margin: 0; padding: 0; list-style: none; }
 .tree-root > .tree-item { width: 100%; }
-.tree-root > .tree-item > .tree-level { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 54px; }
-.lane { --accent: #db746e; --wash: #fff7f6; --border: #f2dad8; min-width: 0; min-height: 660px; border: 1px solid var(--border); border-radius: 10px; padding: 14px; background: linear-gradient(180deg, var(--wash), #fff 85%); }
+.tree-root > .tree-item > .tree-level { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 16px; margin-top: 54px; }
+.lane { --accent: #db746e; --wash: #fff7f6; --border: #f2dad8; min-width: 0; border: 1px solid var(--border); border-radius: 10px; padding: 14px; background: linear-gradient(180deg, var(--wash), #fff 85%); }
+.lane-collapsed { border: 0; padding: 0; background: transparent; }
 .lane-runtime { --accent: #21957c; --wash: #f2faf7; --border: #d8eee7; }
 .lane > .tree-level { margin: 10px 0 0 18px; border-left: 1px solid var(--border); padding-left: 20px; }
 .lane .tree-item { position: relative; margin-top: 8px; }
@@ -128,7 +129,6 @@ a { color: inherit; }
   .sidebar-brand { padding-inline: 14px; }
   .sidebar-brand strong { font-size: 12px; }
   .sidebar-brand small { font-size: 10px; }
-  .mind-map { min-width: 820px; }
 }
 
 @media (max-width: 760px) {
@@ -145,19 +145,7 @@ a { color: inherit; }
   .map-location { font-size: 11px; }
   .map-actions button { padding: 5px 6px; font-size: 10px; }
   .map-area { padding: 0 8px 18px; }
-  .map-scroll { min-height: 0; overflow: visible; }
-  .mind-map { width: 100%; min-width: 0; padding: 23px 5px 25px; }
-  .map-connectors { display: none; }
-  .tree-root > .tree-item > .tree-level { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 18px 0 0 13px; border-left: 1px solid #c8d6ed; padding-left: 14px; }
-  .lane { min-height: 0; padding: 10px; }
-  .lane > .tree-level, .lane .tree-level .tree-level { margin-left: 12px; padding-left: 13px; }
-  .lane .tree-level > .tree-item::before, .lane .tree-level .tree-level > .tree-item::before { left: -14px; width: 13px; }
-  .node-level-0 { width: min(100%, 324px); }
-  .node { gap: 8px; padding: 9px; }
-  .node-title { font-size: 11px; }
-  .node-description { font-size: 9px; }
-  .node-count { display: none; }
-  .wide-hint { display: none; }
+  .mind-map { padding-top: 34px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

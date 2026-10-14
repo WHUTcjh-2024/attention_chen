@@ -102,6 +102,7 @@ const outline = document.querySelector('#outline')
 const search = document.querySelector('#node-search')
 const searchResults = document.querySelector('#search-results')
 const svgNamespace = 'http://www.w3.org/2000/svg'
+let hasRendered = false
 
 function icon(name) {
   const svg = document.createElementNS(svgNamespace, 'svg')
@@ -117,7 +118,6 @@ function drawConnector() {
   const svg = map.querySelector('.map-connectors')
   if (!svg) return
   svg.replaceChildren()
-  if (window.matchMedia('(max-width: 760px)').matches) return
 
   const root = map.querySelector('.node-level-0')
   const branches = [...map.querySelectorAll('.node-level-1')]
@@ -143,9 +143,9 @@ function drawConnector() {
 
 function renderNode(node, depth) {
   const item = document.createElement('li')
-  item.className = `tree-item${depth === 1 ? ` lane lane-${node.id}` : ''}`
   const hasChildren = Boolean(node.children?.length)
   const isExpanded = hasChildren && expanded.has(node.id)
+  item.className = `tree-item${depth === 1 ? ` lane lane-${node.id}${isExpanded ? '' : ' lane-collapsed'}` : ''}`
   const card = document.createElement(hasChildren ? 'button' : 'div')
   card.className = `node node-level-${Math.min(depth, 3)}${hasChildren ? ' node-clickable' : ' node-leaf'}${selectedId === node.id ? ' is-selected' : ''}`
   card.dataset.nodeId = node.id
@@ -263,6 +263,10 @@ function render(focusId = null, scrollToId = null) {
 
   requestAnimationFrame(() => {
     drawConnector()
+    if (!hasRendered || scrollToId === tree.id) {
+      scroller.scrollLeft = (scroller.scrollWidth - scroller.clientWidth) / 2
+    }
+    hasRendered = true
     if (scrollToId) map.querySelector(`[data-node-id="${scrollToId}"]`)?.scrollIntoView({ block: 'center', inline: 'center' })
     if (focusId) map.querySelector(`button[data-node-id="${focusId}"]`)?.focus({ preventScroll: true })
   })
@@ -283,11 +287,16 @@ function selectNode(id) {
   render(null, id)
 }
 
+function collapseBranch(node) {
+  expanded.delete(node.id)
+  node.children?.forEach(collapseBranch)
+}
+
 map.addEventListener('click', (event) => {
   const button = event.target.closest('button[data-node-id]')
   if (!button) return
   const id = button.dataset.nodeId
-  if (expanded.has(id)) expanded.delete(id)
+  if (expanded.has(id)) collapseBranch(nodes.get(id))
   else expanded.add(id)
   selectedId = id
   render(id)
@@ -297,7 +306,7 @@ outline.addEventListener('click', (event) => {
   const toggle = event.target.closest('button[data-toggle-id]')
   if (toggle) {
     const id = toggle.dataset.toggleId
-    if (expanded.has(id)) expanded.delete(id)
+    if (expanded.has(id)) collapseBranch(nodes.get(id))
     else expanded.add(id)
     selectedId = id
     render()
@@ -314,7 +323,6 @@ document.querySelector('#expand-all').addEventListener('click', () => {
 
 document.querySelector('#collapse-all').addEventListener('click', () => {
   expanded.clear()
-  expanded.add(tree.id)
   selectedId = tree.id
   render(null, tree.id)
 })
