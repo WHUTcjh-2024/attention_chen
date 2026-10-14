@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f7f9fc" />
+    <meta name="theme-color" content="#f8f8f5" />
     <meta name="description" content="Attention 知识思维导图：按模型结构和推理阶段逐级展开。" />
     <title>Attention · 思维导图</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
@@ -13,39 +13,29 @@
   <body>
     <header class="site-header">
       <a class="brand" href="./" aria-label="Attention 首页">
-        <span class="brand-mark" aria-hidden="true">A</span>
-        <span>Attention<span class="brand-period">.</span></span>
+        Attention<span class="brand-period">.</span>
       </a>
       <a class="github-link" href="https://github.com/WHUTcjh-2024/attention_chen" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
     </header>
 
     <main>
       <section class="intro" aria-labelledby="page-title">
-        <p class="eyebrow">ATTENTION KNOWLEDGE MAP</p>
-        <h1 id="page-title">Attention <span>思维导图</span></h1>
-        <p class="intro-copy">沿模型结构和推理阶段两条主线，逐级展开每个分支。</p>
-        <div class="intro-meta" aria-label="导图规模">
-          <span>02 条主线</span><span aria-hidden="true" class="meta-dot"></span><span>06 个核心主题</span>
-        </div>
+        <h1 id="page-title">注意力机制</h1>
+        <p class="intro-copy">按模型结构与推理阶段整理，点开节点继续往下看。</p>
       </section>
 
-      <section class="map-section" aria-labelledby="map-title">
-        <div class="map-heading">
-          <div>
-            <p class="section-kicker">EXPLORE THE MAP</p>
-            <h2 id="map-title">知识思维导图</h2>
-          </div>
+      <section class="map-section" aria-label="Attention 思维导图">
+        <div class="map-toolbar">
+          <p class="map-hint">点击节点上的 <span aria-hidden="true">+</span> 或 <span aria-hidden="true">−</span> 展开、收起。<span class="desktop-hint">内容较宽时可左右滚动。</span></p>
           <div class="map-actions" aria-label="导图操作">
             <button id="expand-all" type="button">全部展开</button>
             <button id="collapse-all" type="button">全部收起</button>
           </div>
         </div>
-        <p class="map-hint">从顶部开始，点击节点上的 <span class="hint-symbol">＋</span> 或 <span class="hint-symbol">−</span> 逐级展开和收起。<span class="desktop-hint">较宽的分支可左右滚动查看。</span></p>
         <div class="map-scroll" id="map-scroll" tabindex="0" aria-label="Attention 思维导图">
           <div id="mind-map" class="mind-map"></div>
         </div>
       </section>
     </main>
-    <footer class="site-footer">Attention · 一张持续生长的知识图</footer>
   </body>
 </html>
