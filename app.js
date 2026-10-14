@@ -79,105 +79,174 @@ const tree = {
   ]
 }
 
+const nodes = new Map()
+const parents = new Map()
 const expandableIds = new Set()
 
-function collectExpandable(node) {
-  if (!node.children) return
-  expandableIds.add(node.id)
-  node.children.forEach(collectExpandable)
+function indexTree(node, parent = null) {
+  nodes.set(node.id, node)
+  if (parent) parents.set(node.id, parent.id)
+  if (node.children?.length) {
+    expandableIds.add(node.id)
+    node.children.forEach((child) => indexTree(child, node))
+  }
 }
 
-collectExpandable(tree)
+indexTree(tree)
 
-const expanded = new Set(['attention'])
+const expanded = new Set(['attention', 'architecture', 'runtime', 'standard', 'decode'])
+let selectedId = tree.id
 const map = document.querySelector('#mind-map')
 const scroller = document.querySelector('#map-scroll')
+const outline = document.querySelector('#outline')
+const search = document.querySelector('#node-search')
+const searchResults = document.querySelector('#search-results')
 const svgNamespace = 'http://www.w3.org/2000/svg'
 
-function drawConnectors() {
+function icon(name) {
+  const svg = document.createElementNS(svgNamespace, 'svg')
+  svg.classList.add('icon')
+  svg.setAttribute('aria-hidden', 'true')
+  const use = document.createElementNS(svgNamespace, 'use')
+  use.setAttribute('href', `#icon-${name}`)
+  svg.append(use)
+  return svg
+}
+
+function drawConnector() {
   const svg = map.querySelector('.map-connectors')
-  if (!svg || window.matchMedia('(max-width: 700px)').matches) return
+  if (!svg) return
+  svg.replaceChildren()
+  if (window.matchMedia('(max-width: 760px)').matches) return
+
+  const root = map.querySelector('.node-level-0')
+  const branches = [...map.querySelectorAll('.node-level-1')]
+  if (!root || !branches.length) return
 
   const mapRect = map.getBoundingClientRect()
+  const centerX = (rect) => rect.left + rect.width / 2 - mapRect.left
+  const rootRect = root.getBoundingClientRect()
+  const branchRects = branches.map((branch) => branch.getBoundingClientRect())
+  const startY = rootRect.bottom - mapRect.top
+  const endY = branchRects[0].top - mapRect.top
+  const junctionY = startY + (endY - startY) / 2
+  const xValues = branchRects.map(centerX)
+  const segments = [`M ${centerX(rootRect)} ${startY} V ${junctionY}`]
+  if (xValues.length > 1) segments.push(`M ${xValues[0]} ${junctionY} H ${xValues.at(-1)}`)
+  xValues.forEach((x) => segments.push(`M ${x} ${junctionY} V ${endY}`))
+
   svg.setAttribute('viewBox', `0 0 ${mapRect.width} ${mapRect.height}`)
-  svg.replaceChildren()
-
-  for (const item of map.querySelectorAll('.tree-item')) {
-    const children = [...item.children].find((child) => child.classList.contains('tree-level'))
-    if (!children) continue
-
-    const parent = item.firstElementChild.getBoundingClientRect()
-    const targets = [...children.children].map((child) => child.firstElementChild.getBoundingClientRect())
-    const centerX = (rect) => rect.left + rect.width / 2 - mapRect.left
-    const startY = parent.bottom - mapRect.top
-    const endY = targets[0].top - mapRect.top
-    const junctionY = startY + (endY - startY) / 2
-    const positions = targets.map(centerX)
-
-    const segments = [`M ${centerX(parent)} ${startY} V ${junctionY}`]
-    if (targets.length > 1) {
-      segments.push(`M ${positions[0]} ${junctionY} H ${positions.at(-1)}`)
-    }
-    for (const x of positions) segments.push(`M ${x} ${junctionY} V ${endY}`)
-
-    const path = document.createElementNS(svgNamespace, 'path')
-    path.setAttribute('d', segments.join(' '))
-    svg.append(path)
-  }
+  const path = document.createElementNS(svgNamespace, 'path')
+  path.setAttribute('d', segments.join(' '))
+  svg.append(path)
 }
 
 function renderNode(node, depth) {
   const item = document.createElement('li')
-  item.className = 'tree-item'
-
+  item.className = `tree-item${depth === 1 ? ` lane lane-${node.id}` : ''}`
   const hasChildren = Boolean(node.children?.length)
   const isExpanded = hasChildren && expanded.has(node.id)
   const card = document.createElement(hasChildren ? 'button' : 'div')
-  card.className = `node node-level-${Math.min(depth, 3)}${hasChildren ? ' node-clickable' : ' node-leaf'}`
+  card.className = `node node-level-${Math.min(depth, 3)}${hasChildren ? ' node-clickable' : ' node-leaf'}${selectedId === node.id ? ' is-selected' : ''}`
+  card.dataset.nodeId = node.id
 
   if (hasChildren) {
     card.type = 'button'
-    card.dataset.nodeId = node.id
     card.setAttribute('aria-expanded', String(isExpanded))
+    if (isExpanded) card.setAttribute('aria-controls', `children-${node.id}`)
     card.setAttribute('aria-label', `${node.title}，${isExpanded ? '收起' : '展开'}子节点`)
   }
 
+  const mark = document.createElement('span')
+  mark.className = 'node-mark'
+  mark.append(icon(depth === 0 ? 'book' : depth === 1 ? node.id === 'runtime' ? 'clock' : 'layers' : 'file'))
+  card.append(mark)
+
   const copy = document.createElement('span')
   copy.className = 'node-copy'
-
   const title = document.createElement('strong')
   title.className = 'node-title'
   title.textContent = node.title
   copy.append(title)
-
   if (node.description) {
     const description = document.createElement('span')
     description.className = 'node-description'
     description.textContent = node.description
     copy.append(description)
   }
-
   card.append(copy)
 
-  const symbol = document.createElement('span')
-  symbol.className = hasChildren ? 'node-toggle' : 'node-end'
-  symbol.setAttribute('aria-hidden', 'true')
-  symbol.textContent = hasChildren ? (isExpanded ? '−' : '+') : '•'
-  card.append(symbol)
+  if (hasChildren) {
+    const count = document.createElement('span')
+    count.className = 'node-count'
+    count.textContent = node.children.length
+    count.setAttribute('aria-hidden', 'true')
+    card.append(count)
+    const toggle = document.createElement('span')
+    toggle.className = 'node-toggle'
+    toggle.textContent = isExpanded ? '−' : '+'
+    toggle.setAttribute('aria-hidden', 'true')
+    card.append(toggle)
+  }
   item.append(card)
 
-  if (hasChildren && isExpanded) {
+  if (isExpanded) {
     const children = document.createElement('ul')
     children.id = `children-${node.id}`
     children.className = 'tree-level'
     node.children.forEach((child) => children.append(renderNode(child, depth + 1)))
     item.append(children)
   }
-
   return item
 }
 
-function render(focusId) {
+function renderOutlineNode(node, depth = 0) {
+  const item = document.createElement('li')
+  item.className = 'outline-item'
+  const row = document.createElement('div')
+  row.className = `outline-row${selectedId === node.id ? ' is-current' : ''}`
+  row.style.setProperty('--depth', depth)
+
+  if (node.children?.length) {
+    const toggle = document.createElement('button')
+    toggle.type = 'button'
+    toggle.className = 'outline-toggle'
+    toggle.dataset.toggleId = node.id
+    toggle.textContent = expanded.has(node.id) ? '⌄' : '›'
+    toggle.setAttribute('aria-label', `${expanded.has(node.id) ? '收起' : '展开'}${node.title}`)
+    row.append(toggle)
+  } else {
+    const spacer = document.createElement('span')
+    spacer.className = 'outline-spacer'
+    row.append(spacer)
+  }
+
+  const link = document.createElement('button')
+  link.type = 'button'
+  link.className = 'outline-link'
+  link.dataset.selectId = node.id
+  if (selectedId === node.id) link.setAttribute('aria-current', 'location')
+  link.append(icon(depth < 2 ? 'map' : 'file'))
+  const label = document.createElement('span')
+  label.textContent = node.title
+  link.append(label)
+  row.append(link)
+  item.append(row)
+
+  if (node.children?.length && expanded.has(node.id)) {
+    const children = document.createElement('ul')
+    children.className = 'outline-children'
+    node.children.forEach((child) => children.append(renderOutlineNode(child, depth + 1)))
+    item.append(children)
+  }
+  return item
+}
+
+function updatePath() {
+  document.querySelector('#current-path').textContent = selectedId === tree.id ? '知识导图' : nodes.get(selectedId).title
+}
+
+function render(focusId = null, scrollToId = null) {
   const list = document.createElement('ul')
   list.className = 'tree-level tree-root'
   list.append(renderNode(tree, 0))
@@ -186,26 +255,56 @@ function render(focusId) {
   svg.setAttribute('aria-hidden', 'true')
   map.replaceChildren(svg, list)
 
-  if (focusId) {
-    map.querySelector(`[data-node-id="${focusId}"]`)?.focus({ preventScroll: true })
-  }
+  const outlineList = document.createElement('ul')
+  outlineList.className = 'outline-list'
+  outlineList.append(renderOutlineNode(tree))
+  outline.replaceChildren(outlineList)
+  updatePath()
 
   requestAnimationFrame(() => {
-    drawConnectors()
-    if (window.matchMedia('(min-width: 701px)').matches) {
-      scroller.scrollLeft = (scroller.scrollWidth - scroller.clientWidth) / 2
-    }
+    drawConnector()
+    if (scrollToId) map.querySelector(`[data-node-id="${scrollToId}"]`)?.scrollIntoView({ block: 'center', inline: 'center' })
+    if (focusId) map.querySelector(`button[data-node-id="${focusId}"]`)?.focus({ preventScroll: true })
   })
+}
+
+function expandAncestors(id) {
+  let parentId = parents.get(id)
+  while (parentId) {
+    expanded.add(parentId)
+    parentId = parents.get(parentId)
+  }
+}
+
+function selectNode(id) {
+  if (!nodes.has(id)) return
+  expandAncestors(id)
+  selectedId = id
+  render(null, id)
 }
 
 map.addEventListener('click', (event) => {
   const button = event.target.closest('button[data-node-id]')
   if (!button) return
-
   const id = button.dataset.nodeId
   if (expanded.has(id)) expanded.delete(id)
   else expanded.add(id)
+  selectedId = id
   render(id)
+})
+
+outline.addEventListener('click', (event) => {
+  const toggle = event.target.closest('button[data-toggle-id]')
+  if (toggle) {
+    const id = toggle.dataset.toggleId
+    if (expanded.has(id)) expanded.delete(id)
+    else expanded.add(id)
+    selectedId = id
+    render()
+    return
+  }
+  const link = event.target.closest('button[data-select-id]')
+  if (link) selectNode(link.dataset.selectId)
 })
 
 document.querySelector('#expand-all').addEventListener('click', () => {
@@ -216,9 +315,72 @@ document.querySelector('#expand-all').addEventListener('click', () => {
 document.querySelector('#collapse-all').addEventListener('click', () => {
   expanded.clear()
   expanded.add(tree.id)
-  render()
+  selectedId = tree.id
+  render(null, tree.id)
+})
+
+function hideSearch() {
+  searchResults.hidden = true
+  search.setAttribute('aria-expanded', 'false')
+}
+
+function showSearch() {
+  const query = search.value.trim().toLocaleLowerCase()
+  searchResults.replaceChildren()
+  if (!query) return hideSearch()
+
+  const matches = [...nodes.values()].filter((node) =>
+    `${node.title} ${node.description || ''}`.toLocaleLowerCase().includes(query)
+  ).slice(0, 10)
+  if (!matches.length) {
+    const empty = document.createElement('p')
+    empty.className = 'search-empty'
+    empty.textContent = '没有找到匹配的节点'
+    searchResults.append(empty)
+  }
+  for (const node of matches) {
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.dataset.searchId = node.id
+    const title = document.createElement('strong')
+    title.textContent = node.title
+    const description = document.createElement('span')
+    description.textContent = node.description || ''
+    button.append(title, description)
+    searchResults.append(button)
+  }
+  searchResults.hidden = false
+  search.setAttribute('aria-expanded', 'true')
+}
+
+search.addEventListener('input', showSearch)
+search.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') hideSearch()
+  if (event.key === 'Enter') {
+    const first = searchResults.querySelector('button[data-search-id]')
+    if (first) {
+      selectNode(first.dataset.searchId)
+      hideSearch()
+    }
+  }
+})
+searchResults.addEventListener('click', (event) => {
+  const button = event.target.closest('button[data-search-id]')
+  if (!button) return
+  selectNode(button.dataset.searchId)
+  hideSearch()
+})
+document.addEventListener('pointerdown', (event) => {
+  if (!event.target.closest('.search-wrap')) hideSearch()
+})
+document.addEventListener('keydown', (event) => {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+    event.preventDefault()
+    search.focus()
+    search.select()
+  }
 })
 
 render()
-window.addEventListener('resize', drawConnectors)
-document.fonts.ready.then(drawConnectors)
+window.addEventListener('resize', drawConnector)
+document.fonts.ready.then(drawConnector)
