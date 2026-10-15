@@ -97,27 +97,17 @@ indexTree(tree)
 const expanded = new Set(['attention', 'architecture', 'runtime', 'standard', 'decode'])
 let selectedId = tree.id
 const map = document.querySelector('#mind-map')
-const scroller = document.querySelector('#map-scroll')
 const outline = document.querySelector('#outline')
 const search = document.querySelector('#node-search')
 const searchResults = document.querySelector('#search-results')
 const svgNamespace = 'http://www.w3.org/2000/svg'
-let hasRendered = false
-
-function icon(name) {
-  const svg = document.createElementNS(svgNamespace, 'svg')
-  svg.classList.add('icon')
-  svg.setAttribute('aria-hidden', 'true')
-  const use = document.createElementNS(svgNamespace, 'use')
-  use.setAttribute('href', `#icon-${name}`)
-  svg.append(use)
-  return svg
-}
 
 function drawConnector() {
   const svg = map.querySelector('.map-connectors')
   if (!svg) return
   svg.replaceChildren()
+
+  if (window.matchMedia('(max-width: 1120px)').matches) return
 
   const root = map.querySelector('.node-level-0')
   const branches = [...map.querySelectorAll('.node-level-1')]
@@ -139,28 +129,31 @@ function drawConnector() {
   const path = document.createElementNS(svgNamespace, 'path')
   path.setAttribute('d', segments.join(' '))
   svg.append(path)
+
+  for (const x of xValues) {
+    const point = document.createElementNS(svgNamespace, 'circle')
+    point.setAttribute('cx', x)
+    point.setAttribute('cy', endY)
+    point.setAttribute('r', '4')
+    svg.append(point)
+  }
 }
 
 function renderNode(node, depth) {
   const item = document.createElement('li')
   const hasChildren = Boolean(node.children?.length)
   const isExpanded = hasChildren && expanded.has(node.id)
-  item.className = `tree-item${depth === 1 ? ` lane lane-${node.id}${isExpanded ? '' : ' lane-collapsed'}` : ''}`
-  const card = document.createElement(hasChildren ? 'button' : 'div')
-  card.className = `node node-level-${Math.min(depth, 3)}${hasChildren ? ' node-clickable' : ' node-leaf'}${selectedId === node.id ? ' is-selected' : ''}`
-  card.dataset.nodeId = node.id
+  item.className = `tree-item${depth === 1 ? ` lane lane-${node.id}` : ''}`
+  const nodeElement = document.createElement(hasChildren ? 'button' : 'div')
+  nodeElement.className = `node node-level-${Math.min(depth, 3)}${hasChildren ? ' node-clickable' : ''}${selectedId === node.id ? ' is-selected' : ''}`
+  nodeElement.dataset.nodeId = node.id
 
   if (hasChildren) {
-    card.type = 'button'
-    card.setAttribute('aria-expanded', String(isExpanded))
-    if (isExpanded) card.setAttribute('aria-controls', `children-${node.id}`)
-    card.setAttribute('aria-label', `${node.title}，${isExpanded ? '收起' : '展开'}子节点`)
+    nodeElement.type = 'button'
+    nodeElement.setAttribute('aria-expanded', String(isExpanded))
+    if (isExpanded) nodeElement.setAttribute('aria-controls', `children-${node.id}`)
+    nodeElement.setAttribute('aria-label', `${node.title}，${isExpanded ? '收起' : '展开'}子节点`)
   }
-
-  const mark = document.createElement('span')
-  mark.className = 'node-mark'
-  mark.append(icon(depth === 0 ? 'book' : depth === 1 ? node.id === 'runtime' ? 'clock' : 'layers' : 'file'))
-  card.append(mark)
 
   const copy = document.createElement('span')
   copy.className = 'node-copy'
@@ -174,21 +167,16 @@ function renderNode(node, depth) {
     description.textContent = node.description
     copy.append(description)
   }
-  card.append(copy)
+  nodeElement.append(copy)
 
   if (hasChildren) {
-    const count = document.createElement('span')
-    count.className = 'node-count'
-    count.textContent = node.children.length
-    count.setAttribute('aria-hidden', 'true')
-    card.append(count)
     const toggle = document.createElement('span')
     toggle.className = 'node-toggle'
-    toggle.textContent = isExpanded ? '−' : '+'
+    toggle.textContent = isExpanded ? '⌄' : '›'
     toggle.setAttribute('aria-hidden', 'true')
-    card.append(toggle)
+    nodeElement.append(toggle)
   }
-  item.append(card)
+  item.append(nodeElement)
 
   if (isExpanded) {
     const children = document.createElement('ul')
@@ -200,12 +188,10 @@ function renderNode(node, depth) {
   return item
 }
 
-function renderOutlineNode(node, depth = 0) {
+function renderOutlineNode(node) {
   const item = document.createElement('li')
-  item.className = 'outline-item'
   const row = document.createElement('div')
   row.className = `outline-row${selectedId === node.id ? ' is-current' : ''}`
-  row.style.setProperty('--depth', depth)
 
   if (node.children?.length) {
     const toggle = document.createElement('button')
@@ -226,7 +212,6 @@ function renderOutlineNode(node, depth = 0) {
   link.className = 'outline-link'
   link.dataset.selectId = node.id
   if (selectedId === node.id) link.setAttribute('aria-current', 'location')
-  link.append(icon(depth < 2 ? 'map' : 'file'))
   const label = document.createElement('span')
   label.textContent = node.title
   link.append(label)
@@ -236,7 +221,7 @@ function renderOutlineNode(node, depth = 0) {
   if (node.children?.length && expanded.has(node.id)) {
     const children = document.createElement('ul')
     children.className = 'outline-children'
-    node.children.forEach((child) => children.append(renderOutlineNode(child, depth + 1)))
+    node.children.forEach((child) => children.append(renderOutlineNode(child)))
     item.append(children)
   }
   return item
@@ -263,10 +248,6 @@ function render(focusId = null, scrollToId = null) {
 
   requestAnimationFrame(() => {
     drawConnector()
-    if (!hasRendered || scrollToId === tree.id) {
-      scroller.scrollLeft = (scroller.scrollWidth - scroller.clientWidth) / 2
-    }
-    hasRendered = true
     if (scrollToId) map.querySelector(`[data-node-id="${scrollToId}"]`)?.scrollIntoView({ block: 'center', inline: 'center' })
     if (focusId) map.querySelector(`button[data-node-id="${focusId}"]`)?.focus({ preventScroll: true })
   })
