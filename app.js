@@ -107,43 +107,129 @@ function drawConnector() {
   if (!svg) return
   svg.replaceChildren()
 
-  if (window.matchMedia('(max-width: 1120px)').matches) return
-
-  const root = map.querySelector('.node-level-0')
-  const branches = [...map.querySelectorAll('.node-level-1')]
-  if (!root || !branches.length) return
+  if (window.matchMedia('(max-width: 760px)').matches) return
 
   const mapRect = map.getBoundingClientRect()
+  const card = (id) => map.querySelector(`.node[data-node-id="${id}"]`)
   const centerX = (rect) => rect.left + rect.width / 2 - mapRect.left
-  const rootRect = root.getBoundingClientRect()
-  const branchRects = branches.map((branch) => branch.getBoundingClientRect())
-  const startY = rootRect.bottom - mapRect.top
-  const endY = branchRects[0].top - mapRect.top
-  const junctionY = startY + (endY - startY) / 2
-  const xValues = branchRects.map(centerX)
-  const segments = [`M ${centerX(rootRect)} ${startY} V ${junctionY}`]
-  if (xValues.length > 1) segments.push(`M ${xValues[0]} ${junctionY} H ${xValues.at(-1)}`)
-  xValues.forEach((x) => segments.push(`M ${x} ${junctionY} V ${endY}`))
+  const topY = (rect) => rect.top - mapRect.top
+  const bottomY = (rect) => rect.bottom - mapRect.top
+  const addPath = (data, color) => {
+    const path = document.createElementNS(svgNamespace, 'path')
+    path.setAttribute('d', data)
+    path.setAttribute('stroke', color)
+    svg.append(path)
+  }
+  const addDot = (x, y, color) => {
+    const dot = document.createElementNS(svgNamespace, 'circle')
+    dot.setAttribute('cx', x)
+    dot.setAttribute('cy', y)
+    dot.setAttribute('r', '3.5')
+    dot.setAttribute('fill', color)
+    svg.append(dot)
+  }
+  const drawGroup = (parent, children, color) => {
+    const parentCard = card(parent.id)
+    const childCards = children.map((child) => card(child.id)).filter(Boolean)
+    if (!parentCard || !childCards.length) return
+    const parentRect = parentCard.getBoundingClientRect()
+    const childRects = childCards.map((child) => child.getBoundingClientRect())
+    const startX = centerX(parentRect)
+    const startY = bottomY(parentRect)
+    const childTops = childRects.map(topY)
+    if (Math.max(...childTops) - Math.min(...childTops) > 30) {
+      const railX = Math.min(...childRects.map((rect) => rect.left - mapRect.left)) - 12
+      const endY = Math.max(...childRects.map((rect) => rect.top + rect.height / 2 - mapRect.top))
+      let data = `M ${startX} ${startY} V ${startY + 12} H ${railX} V ${endY}`
+      childRects.forEach((rect) => {
+        const y = rect.top + rect.height / 2 - mapRect.top
+        data += ` M ${railX} ${y} H ${rect.left - mapRect.left}`
+      })
+      addPath(data, color)
+      childRects.forEach((rect) => addDot(rect.left - mapRect.left, rect.top + rect.height / 2 - mapRect.top, color))
+      return
+    }
+    const endY = Math.min(...childTops)
+    const junctionY = startY + (endY - startY) * .48
+    const xs = childRects.map(centerX)
+    let data = `M ${startX} ${startY} V ${junctionY}`
+    if (xs.length > 1) data += ` M ${Math.min(...xs)} ${junctionY} H ${Math.max(...xs)}`
+    childRects.forEach((rect) => {
+      const x = centerX(rect)
+      data += ` M ${x} ${junctionY} V ${topY(rect)}`
+    })
+    addPath(data, color)
+    childRects.forEach((rect) => addDot(centerX(rect), topY(rect), color))
+  }
 
   svg.setAttribute('viewBox', `0 0 ${mapRect.width} ${mapRect.height}`)
-  const path = document.createElementNS(svgNamespace, 'path')
-  path.setAttribute('d', segments.join(' '))
-  svg.append(path)
 
-  for (const x of xValues) {
-    const point = document.createElementNS(svgNamespace, 'circle')
-    point.setAttribute('cx', x)
-    point.setAttribute('cy', endY)
-    point.setAttribute('r', '4')
-    svg.append(point)
+  const rootCard = card(tree.id)
+  if (rootCard && expanded.has(tree.id)) {
+    const branches = tree.children.filter((child) => card(child.id))
+    if (branches.length) {
+      const rootRect = rootCard.getBoundingClientRect()
+      const branchRects = branches.map((branch) => card(branch.id).getBoundingClientRect())
+      const startX = centerX(rootRect)
+      const startY = bottomY(rootRect)
+      const junctionY = startY + (Math.min(...branchRects.map(topY)) - startY) * .48
+      if (window.matchMedia('(max-width: 1400px)').matches) {
+        const railX = 3
+        addPath(`M ${startX} ${startY} V ${junctionY} H ${railX} V ${topY(branchRects.at(-1)) - 20}`, '#647e98')
+        branchRects.forEach((rect, index) => {
+          const color = index === 0 ? '#a78376' : '#77988f'
+          const turnY = topY(rect) - 20
+          addPath(`M ${railX} ${turnY} H ${centerX(rect)} V ${topY(rect)}`, color)
+          addDot(centerX(rect), topY(rect), color)
+        })
+      } else {
+        addPath(`M ${startX} ${startY} V ${junctionY}`, '#647e98')
+        branchRects.forEach((rect, index) => {
+          const x = centerX(rect)
+          const color = index === 0 ? '#a78376' : '#77988f'
+          addPath(`M ${startX} ${junctionY} H ${x} V ${topY(rect)}`, color)
+          addDot(x, topY(rect), color)
+        })
+      }
+    }
+  }
+
+  for (const branch of tree.children) {
+    if (!expanded.has(branch.id)) continue
+    const color = branch.id === 'architecture' ? '#a78376' : '#77988f'
+    if (branch.id === 'architecture' && branch.children.every((child) => card(child.id))) {
+      const parentRect = card(branch.id).getBoundingClientRect()
+      const topRects = branch.children.slice(0, 2).map((child) => card(child.id).getBoundingClientRect())
+      const lowerRects = branch.children.slice(2).map((child) => card(child.id).getBoundingClientRect())
+      const startX = centerX(parentRect)
+      const startY = bottomY(parentRect)
+      const topJunction = startY + (Math.min(...topRects.map(topY)) - startY) * .48
+      const railX = Math.max(...topRects.map((rect) => rect.right - mapRect.left)) + 12
+      const topXs = topRects.map(centerX)
+      const lowerXs = lowerRects.map(centerX)
+      const lowerJunction = Math.min(...lowerRects.map(topY)) - 16
+      let data = `M ${startX} ${startY} V ${topJunction} M ${Math.min(...topXs)} ${topJunction} H ${railX} V ${lowerJunction} H ${Math.min(...lowerXs)}`
+      topRects.forEach((rect) => {
+        data += ` M ${centerX(rect)} ${topJunction} V ${topY(rect)}`
+      })
+      lowerRects.forEach((rect) => {
+        data += ` M ${centerX(rect)} ${lowerJunction} V ${topY(rect)}`
+      })
+      addPath(data, color)
+      topRects.concat(lowerRects).forEach((rect) => addDot(centerX(rect), topY(rect), color))
+    } else {
+      drawGroup(branch, branch.children, color)
+    }
+
+    for (const topic of branch.children) {
+      if (expanded.has(topic.id)) drawGroup(topic, topic.children, color)
+    }
   }
 }
 
-function renderNode(node, depth) {
-  const item = document.createElement('li')
+function renderNodeCard(node, depth) {
   const hasChildren = Boolean(node.children?.length)
   const isExpanded = hasChildren && expanded.has(node.id)
-  item.className = `tree-item${depth === 1 ? ` lane lane-${node.id}` : ''}`
   const nodeElement = document.createElement(hasChildren ? 'button' : 'div')
   nodeElement.className = `node node-level-${Math.min(depth, 3)}${hasChildren ? ' node-clickable' : ''}${selectedId === node.id ? ' is-selected' : ''}`
   nodeElement.dataset.nodeId = node.id
@@ -172,20 +258,59 @@ function renderNode(node, depth) {
   if (hasChildren) {
     const toggle = document.createElement('span')
     toggle.className = 'node-toggle'
-    toggle.textContent = isExpanded ? '⌄' : '›'
+    toggle.textContent = isExpanded ? '−' : '+'
     toggle.setAttribute('aria-hidden', 'true')
     nodeElement.append(toggle)
   }
-  item.append(nodeElement)
+  return nodeElement
+}
 
-  if (isExpanded) {
-    const children = document.createElement('ul')
-    children.id = `children-${node.id}`
-    children.className = 'tree-level'
-    node.children.forEach((child) => children.append(renderNode(child, depth + 1)))
-    item.append(children)
+function renderChildGrid(node) {
+  const grid = document.createElement('div')
+  grid.id = `children-${node.id}`
+  grid.className = 'child-grid'
+  node.children.forEach((child) => {
+    const item = document.createElement('div')
+    item.className = 'child-item'
+    item.append(renderNodeCard(child, 3))
+    grid.append(item)
+  })
+  return grid
+}
+
+function renderTopic(node, detachChildren = false) {
+  const block = document.createElement('div')
+  block.className = `topic-block topic-${node.id}`
+  block.append(renderNodeCard(node, 2))
+  if (expanded.has(node.id) && !detachChildren) block.append(renderChildGrid(node))
+  return block
+}
+
+function renderBranch(node) {
+  const branch = document.createElement('section')
+  const isDetail = node.id === 'architecture'
+    ? node.children.some((child) => child.id !== 'standard' && expanded.has(child.id))
+    : expanded.has('prefill')
+  branch.className = `map-branch lane-${node.id}${isDetail ? ' is-detail' : ''}`
+  branch.append(renderNodeCard(node, 1))
+  if (!expanded.has(node.id)) return branch
+
+  const content = document.createElement('div')
+  content.id = `children-${node.id}`
+  content.className = 'branch-content'
+  if (node.id === 'architecture') {
+    node.children.forEach((child) => content.append(renderTopic(child)))
+  } else {
+    node.children.forEach((child) => content.append(renderTopic(child, child.id === 'decode' && !isDetail)))
+    const decode = node.children.find((child) => child.id === 'decode')
+    if (decode && expanded.has(decode.id) && !isDetail) {
+      const children = renderChildGrid(decode)
+      children.classList.add('decode-children')
+      content.append(children)
+    }
   }
-  return item
+  branch.append(content)
+  return branch
 }
 
 function renderOutlineNode(node) {
@@ -232,13 +357,20 @@ function updatePath() {
 }
 
 function render(focusId = null, scrollToId = null) {
-  const list = document.createElement('ul')
-  list.className = 'tree-level tree-root'
-  list.append(renderNode(tree, 0))
+  const layout = document.createElement('div')
+  layout.className = 'map-layout'
+  layout.append(renderNodeCard(tree, 0))
+  if (expanded.has(tree.id)) {
+    const branches = document.createElement('div')
+    branches.id = `children-${tree.id}`
+    branches.className = 'map-branches'
+    tree.children.forEach((branch) => branches.append(renderBranch(branch)))
+    layout.append(branches)
+  }
   const svg = document.createElementNS(svgNamespace, 'svg')
   svg.classList.add('map-connectors')
   svg.setAttribute('aria-hidden', 'true')
-  map.replaceChildren(svg, list)
+  map.replaceChildren(svg, layout)
 
   const outlineList = document.createElement('ul')
   outlineList.className = 'outline-list'
