@@ -83,19 +83,19 @@ a { color: inherit; }
 .lane-runtime { --accent: #087b73; --line: #68b9aa; --soft: #f3faf7; }
 .lane > .tree-level { margin: 22px 0 0 24px; border-left: 2px solid var(--line); padding-left: 24px; }
 .lane .tree-item { position: relative; margin-top: 12px; }
-.lane .tree-level > .tree-item::before { position: absolute; top: 34px; left: -25px; width: 24px; height: 2px; background: var(--line); content: ''; }
+.lane .tree-level > .tree-item::before { position: absolute; top: 27px; left: -25px; width: 24px; height: 2px; background: var(--line); content: ''; }
 .lane .tree-level .tree-level { margin: 8px 0 17px 17px; border-left: 2px solid var(--line); padding-left: 20px; }
 .lane .tree-level .tree-level > .tree-item { margin-top: 0; }
-.lane .tree-level .tree-level > .tree-item::before { top: 22px; left: -21px; width: 20px; }
+.lane .tree-level .tree-level > .tree-item::before { top: 19px; left: -21px; width: 20px; }
 
-.node { display: flex; align-items: center; gap: 12px; width: 100%; border: 0; background: transparent; color: #1b2942; text-align: left; }
+.node { display: flex; align-items: center; gap: 12px; width: fit-content; max-width: 100%; border: 0; background: transparent; color: #1b2942; text-align: left; }
 .node-clickable { transition: background-color .18s, border-color .18s, box-shadow .18s, color .18s; }
-.node-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 4px; }
+.node-copy { display: flex; flex: 0 1 auto; min-width: 0; flex-direction: column; gap: 4px; }
 .node-title { font-weight: 690; line-height: 1.35; overflow-wrap: anywhere; }
 .node-description { color: #697890; line-height: 1.45; }
 .node-toggle { flex: none; width: 22px; color: #8492a7; font-size: 23px; font-weight: 400; line-height: 1; text-align: center; }
 
-.node-level-0 { flex-direction: column; gap: 0; width: min(100%, 370px); margin: 0 auto; border: 2px solid #7290c5; border-radius: 16px; padding: 20px 22px 16px; background: #fff; box-shadow: 0 12px 30px #26467512; text-align: center; }
+.node-level-0 { flex-direction: column; gap: 0; margin: 0 auto; border: 2px solid #7290c5; border-radius: 16px; padding: 16px 22px 12px; background: #fff; box-shadow: 0 12px 30px #26467512; text-align: center; }
 .node-level-0::before { margin-bottom: 12px; color: #4d73b9; content: '知识主线'; font-size: 11px; font-weight: 700; letter-spacing: .22em; }
 .node-level-0 .node-title { color: #14253f; font-size: clamp(32px, 3.5vw, 46px); letter-spacing: -.05em; }
 .node-level-0 .node-description { font-size: 14px; }
@@ -103,21 +103,19 @@ a { color: inherit; }
 .node-level-0:hover { border-color: #3b67b6; box-shadow: 0 16px 34px #2646751c; }
 .node-level-0:hover .node-title { color: #2b5fbb; }
 
-.node-level-1 { position: relative; min-height: 86px; border: 2px solid var(--accent); border-radius: 13px; padding: 16px 18px 16px 27px; background: var(--soft); }
-.node-level-1::before { position: absolute; top: 15px; bottom: 15px; left: 12px; width: 4px; border-radius: 4px; background: var(--accent); content: ''; }
+.node-level-1 { border: 2px solid var(--accent); border-radius: 13px; padding: 12px 16px; background: var(--soft); }
 .node-level-1 .node-title { color: var(--accent); font-size: 21px; letter-spacing: -.025em; }
 .node-level-1 .node-description { font-size: 13px; }
 .node-level-1 .node-toggle { color: var(--accent); }
 .node-level-1:hover { box-shadow: 0 8px 22px #253c6414; }
 
-.node-level-2 { min-height: 68px; border: 2px solid #b8c5d7; border-left: 4px solid var(--accent); border-radius: 10px; padding: 12px 15px; background: #fff; box-shadow: 0 3px 14px #253c6410; }
+.node-level-2 { border: 2px solid #b8c5d7; border-radius: 10px; padding: 10px 13px; background: #fff; box-shadow: 0 3px 14px #253c6410; }
 .node-level-2 .node-title { font-size: 15px; }
 .node-level-2 .node-description { font-size: 12px; }
 .node-level-2:hover { border-color: var(--accent); background: var(--soft); box-shadow: 0 6px 18px #253c6417; }
 .node-level-2.is-selected { background: var(--soft); }
 
-.node-level-3 { position: relative; min-height: 44px; margin: 7px 0; border: 1.5px solid var(--line); border-radius: 8px; padding: 7px 10px 7px 24px; background: #fff; }
-.node-level-3::before { position: absolute; top: 18px; left: 11px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); content: ''; }
+.node-level-3 { margin: 7px 0; border: 1.5px solid var(--line); border-radius: 8px; padding: 7px 10px; background: #fff; }
 .node-level-3 .node-title { font-size: 13px; }
 .node-level-3 .node-description { font-size: 11px; }
 .node-level-3.is-selected { border-color: var(--accent); background: var(--soft); }
