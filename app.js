@@ -96,7 +96,12 @@ indexTree(tree)
 
 const expanded = new Set(['attention', 'architecture', 'runtime', 'standard', 'decode'])
 let selectedId = tree.id
+let zoom = 1
+let mapXOffset = 0
+let mapYOffset = 0
 const map = document.querySelector('#mind-map')
+const viewport = document.querySelector('#map-viewport')
+const stage = document.querySelector('#map-stage')
 const outline = document.querySelector('#outline')
 const search = document.querySelector('#node-search')
 const searchResults = document.querySelector('#search-results')
@@ -107,13 +112,11 @@ function drawConnector() {
   if (!svg) return
   svg.replaceChildren()
 
-  if (window.matchMedia('(max-width: 760px)').matches) return
-
   const mapRect = map.getBoundingClientRect()
   const card = (id) => map.querySelector(`.node[data-node-id="${id}"]`)
-  const centerX = (rect) => rect.left + rect.width / 2 - mapRect.left
-  const topY = (rect) => rect.top - mapRect.top
-  const bottomY = (rect) => rect.bottom - mapRect.top
+  const centerX = (rect) => (rect.left + rect.width / 2 - mapRect.left) / zoom
+  const topY = (rect) => (rect.top - mapRect.top) / zoom
+  const bottomY = (rect) => (rect.bottom - mapRect.top) / zoom
   const addPath = (data, color) => {
     const path = document.createElementNS(svgNamespace, 'path')
     path.setAttribute('d', data)
@@ -138,15 +141,15 @@ function drawConnector() {
     const startY = bottomY(parentRect)
     const childTops = childRects.map(topY)
     if (Math.max(...childTops) - Math.min(...childTops) > 30) {
-      const railX = Math.min(...childRects.map((rect) => rect.left - mapRect.left)) - 12
-      const endY = Math.max(...childRects.map((rect) => rect.top + rect.height / 2 - mapRect.top))
+      const railX = Math.min(...childRects.map((rect) => (rect.left - mapRect.left) / zoom)) - 12
+      const endY = Math.max(...childRects.map((rect) => (rect.top + rect.height / 2 - mapRect.top) / zoom))
       let data = `M ${startX} ${startY} V ${startY + 12} H ${railX} V ${endY}`
       childRects.forEach((rect) => {
-        const y = rect.top + rect.height / 2 - mapRect.top
-        data += ` M ${railX} ${y} H ${rect.left - mapRect.left}`
+        const y = (rect.top + rect.height / 2 - mapRect.top) / zoom
+        data += ` M ${railX} ${y} H ${(rect.left - mapRect.left) / zoom}`
       })
       addPath(data, color)
-      childRects.forEach((rect) => addDot(rect.left - mapRect.left, rect.top + rect.height / 2 - mapRect.top, color))
+      childRects.forEach((rect) => addDot((rect.left - mapRect.left) / zoom, (rect.top + rect.height / 2 - mapRect.top) / zoom, color))
       return
     }
     const endY = Math.min(...childTops)
@@ -162,7 +165,7 @@ function drawConnector() {
     childRects.forEach((rect) => addDot(centerX(rect), topY(rect), color))
   }
 
-  svg.setAttribute('viewBox', `0 0 ${mapRect.width} ${mapRect.height}`)
+  svg.setAttribute('viewBox', `0 0 ${map.offsetWidth} ${map.offsetHeight}`)
 
   const rootCard = card(tree.id)
   if (rootCard && expanded.has(tree.id)) {
@@ -173,53 +176,20 @@ function drawConnector() {
       const startX = centerX(rootRect)
       const startY = bottomY(rootRect)
       const junctionY = startY + (Math.min(...branchRects.map(topY)) - startY) * .48
-      if (window.matchMedia('(max-width: 1400px)').matches) {
-        const railX = 3
-        addPath(`M ${startX} ${startY} V ${junctionY} H ${railX} V ${topY(branchRects.at(-1)) - 20}`, '#647e98')
-        branchRects.forEach((rect, index) => {
-          const color = index === 0 ? '#a78376' : '#77988f'
-          const turnY = topY(rect) - 20
-          addPath(`M ${railX} ${turnY} H ${centerX(rect)} V ${topY(rect)}`, color)
-          addDot(centerX(rect), topY(rect), color)
-        })
-      } else {
-        addPath(`M ${startX} ${startY} V ${junctionY}`, '#647e98')
-        branchRects.forEach((rect, index) => {
-          const x = centerX(rect)
-          const color = index === 0 ? '#a78376' : '#77988f'
-          addPath(`M ${startX} ${junctionY} H ${x} V ${topY(rect)}`, color)
-          addDot(x, topY(rect), color)
-        })
-      }
+      addPath(`M ${startX} ${startY} V ${junctionY}`, '#647e98')
+      branchRects.forEach((rect, index) => {
+        const x = centerX(rect)
+        const color = index === 0 ? '#a78376' : '#77988f'
+        addPath(`M ${startX} ${junctionY} H ${x} V ${topY(rect)}`, color)
+        addDot(x, topY(rect), color)
+      })
     }
   }
 
   for (const branch of tree.children) {
     if (!expanded.has(branch.id)) continue
     const color = branch.id === 'architecture' ? '#a78376' : '#77988f'
-    if (branch.id === 'architecture' && branch.children.every((child) => card(child.id))) {
-      const parentRect = card(branch.id).getBoundingClientRect()
-      const topRects = branch.children.slice(0, 2).map((child) => card(child.id).getBoundingClientRect())
-      const lowerRects = branch.children.slice(2).map((child) => card(child.id).getBoundingClientRect())
-      const startX = centerX(parentRect)
-      const startY = bottomY(parentRect)
-      const topJunction = startY + (Math.min(...topRects.map(topY)) - startY) * .48
-      const railX = Math.max(...topRects.map((rect) => rect.right - mapRect.left)) + 12
-      const topXs = topRects.map(centerX)
-      const lowerXs = lowerRects.map(centerX)
-      const lowerJunction = Math.min(...lowerRects.map(topY)) - 16
-      let data = `M ${startX} ${startY} V ${topJunction} M ${Math.min(...topXs)} ${topJunction} H ${railX} V ${lowerJunction} H ${Math.min(...lowerXs)}`
-      topRects.forEach((rect) => {
-        data += ` M ${centerX(rect)} ${topJunction} V ${topY(rect)}`
-      })
-      lowerRects.forEach((rect) => {
-        data += ` M ${centerX(rect)} ${lowerJunction} V ${topY(rect)}`
-      })
-      addPath(data, color)
-      topRects.concat(lowerRects).forEach((rect) => addDot(centerX(rect), topY(rect), color))
-    } else {
-      drawGroup(branch, branch.children, color)
-    }
+    drawGroup(branch, branch.children, color)
 
     for (const topic of branch.children) {
       if (expanded.has(topic.id)) drawGroup(topic, topic.children, color)
@@ -278,37 +248,24 @@ function renderChildGrid(node) {
   return grid
 }
 
-function renderTopic(node, detachChildren = false) {
+function renderTopic(node) {
   const block = document.createElement('div')
   block.className = `topic-block topic-${node.id}`
   block.append(renderNodeCard(node, 2))
-  if (expanded.has(node.id) && !detachChildren) block.append(renderChildGrid(node))
+  if (expanded.has(node.id)) block.append(renderChildGrid(node))
   return block
 }
 
 function renderBranch(node) {
   const branch = document.createElement('section')
-  const isDetail = node.id === 'architecture'
-    ? node.children.some((child) => child.id !== 'standard' && expanded.has(child.id))
-    : expanded.has('prefill')
-  branch.className = `map-branch lane-${node.id}${isDetail ? ' is-detail' : ''}`
+  branch.className = `map-branch lane-${node.id}`
   branch.append(renderNodeCard(node, 1))
   if (!expanded.has(node.id)) return branch
 
   const content = document.createElement('div')
   content.id = `children-${node.id}`
   content.className = 'branch-content'
-  if (node.id === 'architecture') {
-    node.children.forEach((child) => content.append(renderTopic(child)))
-  } else {
-    node.children.forEach((child) => content.append(renderTopic(child, child.id === 'decode' && !isDetail)))
-    const decode = node.children.find((child) => child.id === 'decode')
-    if (decode && expanded.has(decode.id) && !isDetail) {
-      const children = renderChildGrid(decode)
-      children.classList.add('decode-children')
-      content.append(children)
-    }
-  }
+  node.children.forEach((child) => content.append(renderTopic(child)))
   branch.append(content)
   return branch
 }
@@ -356,6 +313,41 @@ function updatePath() {
   document.querySelector('#current-path').textContent = selectedId === tree.id ? '知识导图' : nodes.get(selectedId).title
 }
 
+function updateStage() {
+  const scaledWidth = map.offsetWidth * zoom
+  const scaledHeight = map.offsetHeight * zoom
+  mapXOffset = Math.max(0, (viewport.clientWidth - scaledWidth) / 2)
+  mapYOffset = Math.max(0, (viewport.clientHeight - scaledHeight) / 2)
+  stage.style.width = `${Math.max(viewport.clientWidth, scaledWidth)}px`
+  stage.style.height = `${Math.max(viewport.clientHeight, scaledHeight)}px`
+  map.style.transform = `translate(${mapXOffset}px, ${mapYOffset}px) scale(${zoom})`
+  document.querySelector('#zoom-level').value = `${Math.round(zoom * 100)}%`
+}
+
+function setZoom(value, anchorX = viewport.clientWidth / 2, anchorY = viewport.clientHeight / 2) {
+  const nextZoom = Math.max(.18, Math.min(1.8, value))
+  const logicalX = (viewport.scrollLeft + anchorX - mapXOffset) / zoom
+  const logicalY = (viewport.scrollTop + anchorY - mapYOffset) / zoom
+  zoom = nextZoom
+  updateStage()
+  viewport.scrollLeft = logicalX * zoom + mapXOffset - anchorX
+  viewport.scrollTop = logicalY * zoom + mapYOffset - anchorY
+}
+
+function fitMap() {
+  setZoom(Math.min(1, viewport.clientWidth / map.offsetWidth, viewport.clientHeight / map.offsetHeight) * .96)
+  viewport.scrollTo(0, 0)
+}
+
+function centerNode(id) {
+  const node = map.querySelector(`[data-node-id="${id}"]`)
+  if (!node) return
+  const nodeRect = node.getBoundingClientRect()
+  const viewRect = viewport.getBoundingClientRect()
+  viewport.scrollLeft += nodeRect.left + nodeRect.width / 2 - viewRect.left - viewRect.width / 2
+  viewport.scrollTop += nodeRect.top + nodeRect.height / 2 - viewRect.top - viewRect.height / 2
+}
+
 function render(focusId = null, scrollToId = null) {
   const layout = document.createElement('div')
   layout.className = 'map-layout'
@@ -379,8 +371,9 @@ function render(focusId = null, scrollToId = null) {
   updatePath()
 
   requestAnimationFrame(() => {
+    updateStage()
     drawConnector()
-    if (scrollToId) map.querySelector(`[data-node-id="${scrollToId}"]`)?.scrollIntoView({ block: 'center', inline: 'center' })
+    if (scrollToId) centerNode(scrollToId)
     if (focusId) map.querySelector(`button[data-node-id="${focusId}"]`)?.focus({ preventScroll: true })
   })
 }
@@ -502,6 +495,69 @@ document.addEventListener('keydown', (event) => {
   }
 })
 
+document.querySelector('#zoom-in').addEventListener('click', () => setZoom(zoom * 1.2))
+document.querySelector('#zoom-out').addEventListener('click', () => setZoom(zoom / 1.2))
+document.querySelector('#zoom-fit').addEventListener('click', fitMap)
+
+viewport.addEventListener('wheel', (event) => {
+  event.preventDefault()
+  const rect = viewport.getBoundingClientRect()
+  setZoom(zoom * Math.exp(-event.deltaY * .0012), event.clientX - rect.left, event.clientY - rect.top)
+}, { passive: false })
+
+const activePointers = new Map()
+let pinchDistance = 0
+
+viewport.addEventListener('pointerdown', (event) => {
+  if ((event.pointerType === 'mouse' && event.button !== 0) || event.target.closest('button')) return
+  viewport.setPointerCapture(event.pointerId)
+  activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
+  viewport.classList.add('is-dragging')
+  if (activePointers.size === 2) {
+    const [first, second] = [...activePointers.values()]
+    pinchDistance = Math.hypot(first.x - second.x, first.y - second.y)
+  }
+})
+
+viewport.addEventListener('pointermove', (event) => {
+  const previous = activePointers.get(event.pointerId)
+  if (!previous) return
+  activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
+  if (activePointers.size === 2) {
+    const [first, second] = [...activePointers.values()]
+    const distance = Math.hypot(first.x - second.x, first.y - second.y)
+    const rect = viewport.getBoundingClientRect()
+    const centerX = (first.x + second.x) / 2 - rect.left
+    const centerY = (first.y + second.y) / 2 - rect.top
+    if (pinchDistance) setZoom(zoom * distance / pinchDistance, centerX, centerY)
+    pinchDistance = distance
+  } else {
+    viewport.scrollLeft -= event.clientX - previous.x
+    viewport.scrollTop -= event.clientY - previous.y
+  }
+})
+
+function releasePointer(event) {
+  activePointers.delete(event.pointerId)
+  pinchDistance = 0
+  if (!activePointers.size) viewport.classList.remove('is-dragging')
+}
+
+viewport.addEventListener('pointerup', releasePointer)
+viewport.addEventListener('pointercancel', releasePointer)
+
 render()
-window.addEventListener('resize', drawConnector)
-document.fonts.ready.then(drawConnector)
+requestAnimationFrame(() => {
+  const mobile = window.matchMedia('(max-width: 760px)').matches
+  const initialZoom = mobile ? .65 : Math.min(1, viewport.clientWidth / map.offsetWidth)
+  setZoom(initialZoom)
+  if (mobile) centerNode('architecture')
+})
+window.addEventListener('resize', () => {
+  updateStage()
+  drawConnector()
+})
+document.fonts.ready.then(() => {
+  updateStage()
+  drawConnector()
+})

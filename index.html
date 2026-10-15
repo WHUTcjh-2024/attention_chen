@@ -7,8 +7,8 @@
     <meta name="description" content="Attention 知识导图：从模型结构和推理阶段逐级探索注意力机制。" />
     <title>学习小记（陈）</title>
     <link rel="icon" href="./favicon.svg?v=2" type="image/svg+xml" />
-    <link rel="stylesheet" href="./style.css?v=6" />
-    <script src="./app.js?v=4" defer></script>
+    <link rel="stylesheet" href="./style.css?v=7" />
+    <script src="./app.js?v=5" defer></script>
   </head>
   <body>
     <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -52,14 +52,22 @@
           <div class="map-actions" aria-label="导图操作">
             <button id="expand-all" type="button">全部展开</button>
             <button id="collapse-all" type="button">全部收起</button>
+            <div class="zoom-controls" role="group" aria-label="导图缩放">
+              <button id="zoom-out" type="button" aria-label="缩小导图" title="缩小">−</button>
+              <output id="zoom-level" aria-live="off">100%</output>
+              <button id="zoom-in" type="button" aria-label="放大导图" title="放大">+</button>
+              <button id="zoom-fit" type="button" title="显示完整导图">适应</button>
+            </div>
           </div>
         </div>
 
         <section class="map-area" aria-label="Attention 知识导图">
-          <div class="map-scroll">
-            <div id="mind-map" class="mind-map"></div>
+          <div id="map-viewport" class="map-viewport" aria-label="可缩放的知识导图">
+            <div id="map-stage" class="map-stage">
+              <div id="mind-map" class="mind-map"></div>
+            </div>
           </div>
-          <p class="map-help">点击分支或分类，可逐级展开与收起内容</p>
+          <p class="map-help">滚轮或双指缩放，拖动画布平移；点击节点展开或收起</p>
         </section>
       </main>
     </div>
