@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>导图编辑器 · 学习小记（陈）</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./editor.css" />
+    <script src="./editor.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">✣</span>
+        <div>
+          <strong>导图编辑器</strong>
+          <span>只在你的电脑上运行</span>
+        </div>
+      </div>
+      <div class="top-actions">
+        <a class="button button-quiet" href="/" target="_blank" rel="noopener">打开预览</a>
+        <button id="save" class="button button-secondary" type="button" disabled>保存草稿</button>
+        <button id="publish" class="button button-primary" type="button" disabled>保存并发布</button>
+      </div>
+    </header>
+
+    <main class="editor">
+      <aside class="panel tree-panel" aria-label="导图节点">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">结构</p>
+            <h1>选择要编辑的节点</h1>
+          </div>
+          <span id="node-count" class="count"></span>
+        </div>
+        <div id="tree-list" class="tree-list">正在加载导图…</div>
+      </aside>
+
+      <section class="panel detail-panel" aria-label="节点编辑">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">内容</p>
+            <h2>编辑节点</h2>
+          </div>
+          <span id="save-state" class="save-state">正在加载</span>
+        </div>
+        <p id="breadcrumb" class="breadcrumb"></p>
+
+        <form id="node-form" autocomplete="off">
+          <label for="node-title">标题 <span class="required">必填</span></label>
+          <input id="node-title" name="title" maxlength="100" required disabled />
+
+          <label for="node-description">简短说明 <span class="optional">选填</span></label>
+          <textarea id="node-description" name="description" maxlength="240" rows="4" disabled></textarea>
+          <p class="field-hint">标题和说明会直接显示在导图节点上。</p>
+        </form>
+
+        <div class="node-actions" role="group" aria-label="节点操作">
+          <button id="add-child" class="button button-secondary" type="button" disabled>＋ 新增子节点</button>
+          <button id="move-up" class="button button-quiet" type="button" disabled>上移</button>
+          <button id="move-down" class="button button-quiet" type="button" disabled>下移</button>
+          <button id="delete-node" class="button button-danger" type="button" disabled>删除节点</button>
+        </div>
+
+        <div class="guide">
+          <strong>怎么用</strong>
+          <p>先在左侧选择分类，再点“新增子节点”。编辑后可先“保存草稿”并打开预览；满意时点“保存并发布”，网站会自动更新。</p>
+        </div>
+        <p id="message" class="message" role="status" aria-live="polite"></p>
+      </section>
+    </main>
+  </body>
+</html>

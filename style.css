@@ -113,7 +113,7 @@ a { color: inherit; }
 .map-connectors circle { stroke: #faf9f6; stroke-width: 2; }
 .map-branches {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  grid-template-columns: var(--branch-columns, minmax(0, 1.5fr) minmax(0, 1fr));
   align-items: start;
   gap: 64px;
   margin-top: 84px;
@@ -123,19 +123,13 @@ a { color: inherit; }
 .lane-architecture { --accent: #a78376; --soft: #f9f4f1; }
 .lane-runtime { --accent: #77988f; --soft: #f2f7f4; }
 .branch-content { margin-top: 72px; }
-.lane-architecture .branch-content {
+.branch-content {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--topic-count), minmax(0, 1fr));
   align-items: start;
   gap: 18px;
 }
 .topic-block { display: flex; min-width: 0; align-items: center; flex-direction: column; }
-.lane-runtime .branch-content {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
-  gap: 18px;
-}
 .child-grid { display: flex; align-items: center; flex-direction: column; gap: 12px; margin-top: 48px; }
 .child-item { min-width: 0; }
 

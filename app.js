@@ -1,83 +1,6 @@
-const tree = {
-  id: 'attention',
-  title: 'Attention',
-  description: '注意力机制',
-  children: [
-    {
-      id: 'architecture',
-      title: '模型结构',
-      description: '数学形式、信息组织与长上下文',
-      children: [
-        {
-          id: 'standard',
-          title: 'Standard Transformer Attention',
-          description: 'Q、K、V 与 KV 头共享',
-          children: [
-            { id: 'mha', title: 'MHA', description: '每个 Query 头对应一组 KV' },
-            { id: 'mqa', title: 'MQA', description: '多个 Query 头共享一组 KV' },
-            { id: 'gqa', title: 'GQA', description: '一组 Query 头共享一组 KV' }
-          ]
-        },
-        {
-          id: 'efficient',
-          title: 'Memory Efficient Attention',
-          description: '计算优化与 KV 存储压缩',
-          children: [
-            { id: 'flash', title: 'FlashAttention', description: '分块计算与 Online Softmax' },
-            { id: 'mla', title: 'MLA', description: '压缩并缓存 KV latent' }
-          ]
-        },
-        {
-          id: 'long-context',
-          title: 'Long Context Attention',
-          description: '降低长序列计算成本',
-          children: [
-            { id: 'sparse', title: 'Sparse Attention', description: '只关注选定位置或区块' },
-            { id: 'linear', title: 'Linear Attention', description: '改变计算形式，避免显式 T × T 矩阵' }
-          ]
-        },
-        {
-          id: 'hybrid',
-          title: 'Hybrid Architecture Attention',
-          description: '组合不同计算机制',
-          children: [
-            { id: 'dense-linear', title: 'Dense + Linear', description: '混合精确与线性注意力' },
-            { id: 'dense-sparse', title: 'Dense + Sparse', description: '混合全局与选择性关注' },
-            { id: 'attention-ssm', title: 'Attention + SSM', description: '结合注意力与状态空间模型' }
-          ]
-        }
-      ]
-    },
-    {
-      id: 'runtime',
-      title: '推理阶段',
-      description: '一次请求从输入到逐 token 生成',
-      children: [
-        {
-          id: 'prefill',
-          title: 'Prefill Attention',
-          description: '处理输入，建立初始 KV Cache',
-          children: [
-            { id: 'full-sequence', title: 'Full Sequence Attention', description: '处理完整输入序列' },
-            { id: 'chunk', title: 'Chunk Attention', description: '按块处理较长输入' },
-            { id: 'prefill-flash', title: 'FlashAttention', description: '优化 Dense Attention 计算' }
-          ]
-        },
-        {
-          id: 'decode',
-          title: 'Decode Attention',
-          description: '逐 token 生成，读取并追加 KV Cache',
-          children: [
-            { id: 'kv-cache', title: 'KV Cache Attention', description: '复用历史 K、V' },
-            { id: 'paged', title: 'PagedAttention', description: '分块管理 KV Cache' },
-            { id: 'sparse-decode', title: 'Sparse Decode', description: '选择性读取上下文' },
-            { id: 'batching', title: 'Continuous Batching', description: '连续调度多个生成请求' }
-          ]
-        }
-      ]
-    }
-  ]
-}
+const dataResponse = await fetch('./map-data.json', { cache: 'no-store' })
+if (!dataResponse.ok) throw new Error('导图数据加载失败')
+const tree = await dataResponse.json()
 
 const nodes = new Map()
 const parents = new Map()
@@ -265,6 +188,7 @@ function renderBranch(node) {
   const content = document.createElement('div')
   content.id = `children-${node.id}`
   content.className = 'branch-content'
+  content.style.setProperty('--topic-count', Math.max(1, node.children.length))
   node.children.forEach((child) => content.append(renderTopic(child)))
   branch.append(content)
   return branch
@@ -356,6 +280,12 @@ function render(focusId = null, scrollToId = null) {
     const branches = document.createElement('div')
     branches.id = `children-${tree.id}`
     branches.className = 'map-branches'
+    const widths = tree.children.map((branch, index) => Math.max(
+      index === 0 ? 1054 : 702,
+      branch.children.length * 230 + Math.max(0, branch.children.length - 1) * 18
+    ))
+    map.style.width = `${Math.max(1900, widths.reduce((sum, width) => sum + width, 144))}px`
+    branches.style.setProperty('--branch-columns', widths.map((width) => `${width}px`).join(' '))
     tree.children.forEach((branch) => branches.append(renderBranch(branch)))
     layout.append(branches)
   }
